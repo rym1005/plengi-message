@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>API_KEY</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>GCM_SENDER_ID</key>
+	<string>0</string>
+	<key>PLIST_VERSION</key>
+	<string>0</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.plengiMessage</string>
+	<key>PROJECT_ID</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>STORAGE_BUCKET</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>get_your_GoogleService-info.plist</string>
+	<key>DATABASE_URL</key>
+	<string>get_your_GoogleService-info.plist</string>
+</dict>
+</plist>
