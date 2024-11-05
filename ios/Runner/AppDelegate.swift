@@ -14,11 +14,10 @@ import FirebaseMessaging
         GeneratedPluginRegistrant.register(with: self)
         // ********** 중간 생략 ********** //
         
-        // TODO : Enter your ClientId and ClientSecret here.
-        Plengi.initialize(clientID: "your_client_id", clientSecret: "your_client_secret")
+        _ = Plengi.initialize(clientID: "loplat", clientSecret: "loplatsecret")
         
-        FirebaseApp.configure()
-        Messaging.messaging().delegate = self
+//        FirebaseApp.configure()
+//        Messaging.messaging().delegate = self
         
         // 노티피케이션 센터 델리게이트를 AppDelegate로 지정합니다.
         UNUserNotificationCenter.current().delegate = self
@@ -50,8 +49,9 @@ import FirebaseMessaging
     }
     
     func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+        NSLog("ryminaas fcmToken: \(fcmToken)")
         Plengi.registerFcm(fcmToken: fcmToken)
-        Messaging.messaging().subscribe(toTopic: "weather") { error in
+        Messaging.messaging().subscribe(toTopic: "loplat_test_77") { error in
           print("Subscribed to weather topic")
         }
 
@@ -68,7 +68,7 @@ import FirebaseMessaging
         Messaging.messaging().apnsToken = deviceToken
     }
     override func application(_ :UIApplication, didFailToRegisterForRemoteNotificationsWithError: any Error){
-        print("error: \(didFailToRegisterForRemoteNotificationsWithError)")
+        print("rymins error: \(didFailToRegisterForRemoteNotificationsWithError)")
     }
 }
 

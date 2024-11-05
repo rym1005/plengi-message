@@ -4,14 +4,36 @@ import 'dart:io';
 import 'dart:ui';
 import 'dart:developer' as developer;
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import "package:intl/intl.dart";
 import 'package:loplat_plengi/loplat_plengi.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'database/DatabaseHelper.dart';
+import 'firebase_options.dart';
+
+/*/// The name associated with the UI isolate's [SendPort].
+const String isolateName = 'isolate';
+
+/// A port used to communicate from a background isolate to the UI isolate.
+final ReceivePort port = ReceivePort();
+
+/// The background port
+SendPort? uiSendPort;
+
+/// The callback for loplat plengi
+Future<bool> callback(String msg) async {
+  String locationInfo = getLocationInfo(msg);
+  developer.log('result: $locationInfo');
+
+  // This will be null if we're running in the background.
+  uiSendPort ??= IsolateNameServer.lookupPortByName(isolateName);
+  uiSendPort?.send(null);
+  return true;
+}*/
 
 String getEngineStatusToString(int engineStatus) {
   String engineStatusStr = "NOT_INITIALIZED";
@@ -94,7 +116,19 @@ String getLocationInfo(String log) {
 }
 
 Future<void> main() async {
+  /// Register the UI isolate's SendPort to allow for communication from the background isolate.
+/*  IsolateNameServer.registerPortWithName(
+    port.sendPort,
+    isolateName,
+  );*/
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
+
+  /// After runApp, register callback
+  // LoplatPlengiPlugin.setListener(callback);
 }
 
 class MyApp extends StatefulWidget {
@@ -108,7 +142,6 @@ class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   String _plengiStatus = "NOT_INITIALIZED";
   String _loplatResults = '';
-  List<String> _logs = <String>[];
   bool _isAdNetworkEnable = false;
   bool getLocationBtnEnabled = true;
 
@@ -118,33 +151,9 @@ class _MyAppState extends State<MyApp> {
     initPlatformState();
   }
 
-  Future<void> updateLogList() async {
-    DatabaseHelper? dbInstance = await DatabaseHelper.getInstance();
-    if (dbInstance != null) {
-      List<Map> logList = await dbInstance.queryLog();
-      List<String> logs = <String>[];
-      for (Map map in logList) {
-        int time = map.values.elementAt(1);
-        String log = map.values.elementAt(2);
-        String datetime = DateFormat("yyyy/MM/dd HH:mm:ss")
-            .format(DateTime.fromMicrosecondsSinceEpoch(time));
-        logs.add("$datetime\n$log");
-      }
-
-      setState(() {
-        _logs = logs;
-      });
-    }
-  }
-
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    _logs = List<String>.empty(growable: true);
-    await updateLogList();
-
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    ///  CHECK PERMISSION USING PERMISSION HANDLER
+    final SharedPreferences prefs = await  SharedPreferences.getInstance();
     if (Platform.isAndroid) {
       await Permission.locationWhenInUse.request();
       var status = await Permission.locationWhenInUse.status;
@@ -166,7 +175,15 @@ class _MyAppState extends State<MyApp> {
       //   await Permission.locationAlways.request();
       // }
     }
+    final fcmToken = await FirebaseMessaging.instance.getToken();
 
+    developer.log("rymins fcmToken: $fcmToken");
+    FirebaseMessaging.instance.onTokenRefresh
+        .listen((fcmToken) {
+      developer.log("rymins onTokenRefresh: $fcmToken");
+    })
+        .onError((err) {
+    });
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
@@ -181,14 +198,14 @@ class _MyAppState extends State<MyApp> {
     String engineStatusStr = "NOT_INITIALIZED";
     if (engineStatus == -1) {
       engineStatusStr = "NOT_INITIALIZED";
-      var status = await LoplatPlengiPlugin.start("your_client_id", "your_client_secret");
+      var status = await LoplatPlengiPlugin.start("loplat", "loplatsecret");
       if (status == 0) {
         engineStatusStr = "STARTED";
       }
     } else if (engineStatus == 0) {
       engineStatusStr = "STOPPED";
       if (Platform.isIOS) {
-        var status = await LoplatPlengiPlugin.start("your_client_id", "your_client_secret");
+        var status = await LoplatPlengiPlugin.start("loplat", "loplatsecret");
         if (status == 0) {
           engineStatusStr = "STARTED";
         }
@@ -207,11 +224,10 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _platformVersion = platformVersion;
       _plengiStatus = engineStatusStr;
-      _isAdNetworkEnable = prefs.getBool("adNetwork") ?? false;
+      _isAdNetworkEnable =  prefs.getBool("adNetwork")?? false;
     });
   }
 
-  ///  Start Place Monitoring in background.
   startEngine(String id, String pw) async {
     try {
       final res = await LoplatPlengiPlugin.start(id, pw);
@@ -237,7 +253,6 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  ///  Stop Place Monitoring in background.
   stopEngine() async {
     try {
       final res = await LoplatPlengiPlugin.stop;
@@ -265,12 +280,10 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  ///  enable or disable Loplat ad network
-  /// @param    enableAd  true: enable, false: disable
   enableAdNetwork() async {
     try {
       final res = await LoplatPlengiPlugin.enableAdNetwork(!_isAdNetworkEnable);
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final SharedPreferences prefs = await  SharedPreferences.getInstance();
       String formattedDate =
       DateFormat('MM-dd HH:mm:ss').format(DateTime.now());
       if (res == "success") {
@@ -278,7 +291,7 @@ class _MyAppState extends State<MyApp> {
           _loplatResults =
           '$formattedDate\nEnableAdNetwork : ${!_isAdNetworkEnable}\n\n$_loplatResults';
           _isAdNetworkEnable = !_isAdNetworkEnable;
-          prefs.setBool("adNetwork", _isAdNetworkEnable);
+          prefs.setBool("adNetwork",_isAdNetworkEnable );
         });
       }
     } on Error catch (e, t) {
@@ -288,24 +301,18 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  updateLog(String log) async {
+  updateLog(String log) {
     if (log.isEmpty) {
       return;
     }
     String locationInfo = getLocationInfo(log);
     if (locationInfo.isNotEmpty) {
+      String formattedDate =
+      DateFormat('MM-dd HH:mm:ss').format(DateTime.now());
       setState(() {
+        _loplatResults = '$formattedDate\n$locationInfo\n\n$_loplatResults';
         getLocationBtnEnabled = true;
       });
-      await insertLog(locationInfo);
-    }
-  }
-
-  insertLog(String log) async {
-    DatabaseHelper? dbInsatance = await DatabaseHelper.getInstance();
-    if (dbInsatance != null) {
-      dbInsatance.insertLog(log);
-      await updateLogList();
     }
   }
 
@@ -390,23 +397,17 @@ class _MyAppState extends State<MyApp> {
                         onPressed: () async {
                           await enableAdNetwork();
                         },
-                        child: const Text('enable AdNetwork'),
+                        child: const Text('enalbe adnetwork'),
                       ),
                     ),
                   ],
                 ),
                 Expanded(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: _logs.length,
-                      separatorBuilder: (context, index) => const Divider(
-                        height: 10,
-                      ),
-                      // here u can customize the space.
-                      itemBuilder: (BuildContext context, int index) {
-                        return Text(_logs[index]);
-                      },
-                    ))
+                    flex: 1,
+                    child: Align(
+                        alignment: Alignment.topLeft,
+                        child:
+                        SingleChildScrollView(child: Text(_loplatResults))))
               ],
             ),
           ),
