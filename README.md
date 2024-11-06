@@ -1,8 +1,10 @@
-# loplat_plengi
-loplat plengi(Place Engine) SDK plugin project.
+# loplat_plengi_ai_message
+loplat plengi message SDK guide - flutter plugin DEMO example
+
+**데모 앱을 테스트 하려면 Firebase 프로젝트의 google-service.json / GoogleService-Info.plist 파일을 업데이트하고 패키지명/번들id 를 수정해야 합니다.**
 
 ## Supported platforms
-* Flutter Android(plengi v2.1.1.9.6)
+* Flutter Android(plengi-ai-message v2.1.1.9.6)
 * Flutter iOS(MiniPlengi v1.5.6-rc1)
 
 |             | Android | iOS   |
@@ -10,17 +12,63 @@ loplat plengi(Place Engine) SDK plugin project.
 | **Support** | SDK 21+ | 12.0+ |
 
 ## Usage
-plugin을 사용하기 위해서 pubspec.yaml에 'loplat_plengi' 종속성을 추가해주세요. [dependency in your pubspec.yaml file](https://flutter.dev/docs/development/platform-integration/platform-channels).
+plugin을 사용하기 위해서 pubspec.yaml에 'loplat_plengi' 종속성을 추가해주세요. (1.1.0 이상 버전부터 일반 발송이 지원됩니다.)
+
+[dependency in your pubspec.yaml file](https://flutter.dev/docs/development/platform-integration/platform-channels).
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
 
-  loplat_plengi: ^[plugin_version]
+  loplat_plengi: ^[plugin_version] #upper 1.1.0 
 ```
 
-## Examples
-아래는 plugin API를 사용하는 에시입니다.
+# 일반 메시지 서비스 등록 가이드
+
+### FCM 프로젝트 설정
+---
+**_tip_**
+
+**파이어베이스 콘솔에 접근이 필요해 자사 개발팀 도움이 필요할 수 있습니다.**
+
+**현재 SDK 버전을 안드로이드 2.1.2.0 / iOS 1.5.6 이상으로 업데이트 해주세요.**
+
+**SDK 연동 가이드는 개발자 가이드에서 확인해 주세요.**
+
+
+---
+
+📢
+
+**로플랫 일반 마케팅 메시지를 이용하기 위해서는 FCM 프로젝트 개설이 필요합니다.**
+
+- [‘Firebase 콘솔’로 이동](https://console.firebase.google.com/)해서 프로젝트를 개설해주세요.
+- 이미 개설한 프로젝트가 있는 경우 **'앱 등록 및 FCM 인증 정보 전달'** 작업을 진행해주세요.
+  :::
+
+파이어베이스 프로젝트 생성 및 Firebase Cloud Messaging API 활성화는 [다음 링크](https://loplatx-user-guide.notion.site/FCM-10c17375397580ce96bcc598b4295b8b)를 확인해주세요.
+
+## 로플랫 X 앱 등록 및 FCM 인증 정보 전달
+
+### 인증 정보
+
+앱 등록을 위해 다음과 같은 인증 정보가 필요합니다.
+
+1. 일반(General)에 있는 project id
+2. 서비스 계정(Service accounts)에서 만든 비공개 키
+3. 앱 정보
+
+   a. 앱 패키지 네임(iOS의 경우 bundle id)
+
+   b. 앱 이름
+
+   c. 연동이 필요한 OS (android or iOS)
+
+
+### 로플랫 메일로 등록 요청
+
+위 인증 정보들을 로플랫 담당자 또는 business@loplat.com에 전달해주시면 서비스 등록을 도와드리겠습니다.
+
 
 ### Android
 자세한 내용은 [로플랫 개발자 사이트](https://developers.loplat.com/android/)에 설명되어 있습니다.
@@ -34,33 +82,38 @@ allprojects {
   repositories {
     jcenter()
     mavenCentral()
-    maven { url "https://maven.loplat.com/artifactory/plengi"}
+    maven { url "https://maven.loplat.com/artifactory/plengi-aimessage"}
     google()
   }
 }
 ```
 앱의 build.gradle에 아래의 코드를 추가하세요.
 
-**WARNING**
+**WARNING :**
 plugin이 정상적으로 동작하기 위해서 반드시 아래 지정된 버전만을 사용해야 합니다.
 
 ```groovy
-implementation 'com.loplat:placeengine:2.1.1.9.6'
+implementation 'com.loplat:placeengine-ai-message:2.1.2.0'
 ```
 <br>
 
-#### **Google Play Service libraries 적용**
-1. 효율적인 위치 정보 획득을 위해서 build.gradle의 dependency에 아래와 같이 라이브러리 적용이 필요합니다.
-```groovy
-implementation 'com.google.android.gms:play-services-location:21.0.1'
+sdk 인증을 위해 loplat client_id와 client_secret을 추가해주세요.
+
+client_id, client_secret 관련 정보는 메일로 전달 합니다.
+```
+defaultConfig {
+   resValue "string", "[client_id 키명]", "[client_id]"
+   resValue "string", "[clinet_secret 키명]", "[client_secret]"
+}
 ```
 
-2. loplat X를 사용하기 위해서 build.gradle 의 dependency에 아래와 같이 Google Play Services 라이브러리 적용이 필요합니다.
+#### **Google Play Service libraries 적용**
+
+loplat X를 사용하기 위해서 build.gradle 의 dependency에 아래와 같이 Google Play Services 라이브러리 적용이 필요합니다.
 ```groovy
 implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
 ```
 <br>
-
 #### **RETROFIT and GSON libraries 적용**
 위치 확인 요청시 서버와의 통신을 위해 Retrofit 및 GSON 라이브러리를 사용합니다. Retrofit 및 GSON 라이브러리 적용을 위해서 프로젝트의 build.gradle 에 아래와 같이 추가합니다.
 
@@ -89,28 +142,7 @@ Proguard를 사용한다면, 아래와 같이 proguard 설정을 추가해야 �
 ```
 <br>
 
-#### **장소 인식 결과 리스너 등록**
-1. Android native code에 PlengiListener를 구현해주세요.
-```java
-import android.util.Log;
-import com.google.gson.Gson;
-import com.loplat.placeengine.PlengiListener;
-import com.loplat.placeengine.PlengiResponse;
-
-public class LoplatPlengiListener implements PlengiListener {
-  private static final String TAG = LoplatPlengiListener.class.getSimpleName();
-  @Override
-  public void listen(PlengiResponse response) {
-    try {
-      String jsonStr = new Gson().toJson(response);
-      Log.d(TAG, jsonStr);
-    } catch (Exception ignored) {
-      Log.e(TAG, ignored.toString());
-    }
-  }
-}
-```
-2. MainApplication.onCreate()에서 setListener()를 호출해서 구현한 PlengiListener를 등록해주세요.
+1. MainApplication.onCreate()에서 fcmEventReceiver를 등록해주세요.
 ```java
 import io.flutter.app.FlutterApplication;
 
@@ -131,8 +163,8 @@ public class MainApplication extends FlutterApplication {
 ```
 <br>
 
-#### **캠페인 알림 수신 설정**
-loplat X를 통해 알림(FCM 아님)을 받기 위해서는 마케팅 알림 설정하기 전, plengi start 전에 아래와 같은 코드 작성이 필요 합니다.
+#### **일반 방송 알림 수신 설정**
+loplat X를 통해 알림을 받기 위해서는 마케팅 알림 설정 시 아래와 같은 코드 작성이 필요 합니다.
 
 - 마케팅 알림 설정이 ON 인 경우
 ```dart
@@ -150,24 +182,6 @@ import 'package:loplat_plengi/loplat_plengi.dart';
 
 await LoplatPlengiPlugin.enableAdNetwork(false);
 ```
-<br>
-
-#### **Start / Stop Plengi**
-start는 사용자의 위치약관동의 직후 호출해주세요.
-앱 시작 혹은 로그인 할 때 마다 사용자의 위치약관동의 여부를 매번 확인해서 start를 호출해줘야만 합니다.
-
-```dart
-import 'package:loplat_plengi/loplat_plengi.dart';
-
-await LoplatPlengiPlugin.start("[client_id]", "[client_secret]");
-```
-
-stop은 사용자의 위치약관동의에 대한 거부시에만 호출해주세요.
-예외적인 케이스(사용자의 위치 권한 제거, 단말기 재부팅, 앱 비정상종료 등)에도 위치 모니터링이 가능합니다. 예외적인 케이스에 Stop을 호출하지 마세요.
-
-```dart
-await LoplatPlengiPlugin.stop();
-```
 
 ***
 
@@ -176,48 +190,30 @@ await LoplatPlengiPlugin.stop();
 
 android 개발자는 [android 가이드](#android)를 확인 부탁드립니다.
 
-
 #### **권한 추가**
 
 loplat SDK를 사용하기 위해서는 권한을 추가해야합니다. 필요한 권한은 아래와 같습니다.
 
-- Signing
-
-  `Access WiFi Information` : iOS 12 이상부터 현재 연결되어 있는 와이파이 정보를 가져오기 위해 사용합니다. (iOS 13 이상부터 위치권한이 있어야만 작동하는 권한입니다.)
-
 - Background Modes
 
-  `Location Updates` : 백그라운드에서도 위치 정보를 수신하기 위해 사용합니다.
-  `Background fetch` : 앱을 백그라운드로 살려주기 위해 사용합니다.
+  `Remote Notification` : 백그라운드에서 notification을 수신하기 위해 필요합니다.
 
+- Push Notification
 
 <br>
 
+프로젝트에 FirebaseMessaging 의존성을 추가하고 앱을 초기화합니다. 파이어베이스 의존성을 추가하고 초기화 하는 방법에 대한 자세한 내용은 다음 링크를 참고해주세요.
+
+이후 Xcode에서 Signing & Capabilities 탭에서 Capability 를 탭한 뒤 Push Notifications와 Background Modes를 추가합니다.
 Xcode 에서 **Project > Capabilities** 에 들어가 위 권한 목록에 있는 권한들을 허용해줍니다.
 
-![XCode에서 권한 허용하기](https://storage.googleapis.com/loplat-storage/public/sdk-doc/iOS_6.png)
+![XCode에서 권한 허용하기](https://firebasestorage.googleapis.com/v0/b/loplat-developers.appspot.com/o/images%2F4.png?alt=media&token=f310784e-b82b-4e1e-984e-efe9235558ec)
+---
+capability 추가 Background Modes 와 Push Notifications를 추가
+![XCode에서 권한 허용하기](https://firebasestorage.googleapis.com/v0/b/loplat-developers.appspot.com/o/images%2F5.png?alt=media&token=12cb4477-90ee-4461-b2fb-33389444031f)
 
 <br>
 
-#### **Background Fetch 설정**
-앱이 백그라운드에서 살아날 수 있도록 `info.plist` 파일에 아래 내용을 추가합니다.
-
-```xml tab="PLIST" linenums="1"
-<?xml version="1.0" encoding="UTF-8">
-<!DOCTYPE plist PUBLIC "=//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <!-- 중간 생략 -->
-    <key>BGTaskSchedulerPermittedIdentifiers</key>
-    <array>
-	    <string>com.MiniPlengi.Background.Task</string>
-    </array>
-    <!-- 이하 생략 -->
-</dict>
-</plist>
-```
-
-<br>
 
 #### **사용자에게 ATT(App Tracking Transparency) 권한 요청하기**
 
@@ -254,7 +250,6 @@ Xcode 에서 **Project > Capabilities** 에 들어가 위 권한 목록에 있�
 
 
 ```dart
-      await LoplatPlengiPlugin.requestAlwaysLocationAuthorization();
       await LoplatPlengiPlugin.requestAlwaysAuthorization();
 ```
 
@@ -262,11 +257,8 @@ Xcode 에서 **Project > Capabilities** 에 들어가 위 권한 목록에 있�
 
 #### SDK 적용법
 1. import 하기
-   `AppDelegate.h` (Objective-C) / `AppDelegate.swift` (Swift) 파일에, 아래의 구문을 추가해줍니다.
+   `AppDelegate.swift` (Swift) 파일에, 아래의 구문을 추가해줍니다.
 
-```objectivec tab="OBJECTIVE-C"
-#import <MiniPlengi/MiniPlengi-Swift.h>
-```
 
 ```swift tab="SWIFT"
 import MiniPlengi
@@ -284,32 +276,12 @@ import MiniPlengi
 
 `AppDelegate` 클래스 선언부를 아래와 같이 수정합니다.
 
-```objectivec tab="OBJECTIVE-C"
-@interface AppDelegate : UIResponder <UIApplicationDelegate, PlaceDelegate>
-```
-
 ```swift tab="SWIFT"
-class AppDelegate: UIResponder, UIApplicationDelegate, PlaceDelegate {
+@objc class AppDelegate: FlutterAppDelegate , MessagingDelegate{
 ```
 
 이후, `AppDelegate` 클래스에 실제 SDK를 초기화하는 코드를 추가합니다.
 
-```objectivec tab="OBJECTIVE-C" linenums="1"
-(BOOL)application:(UIApplication *)application
-        didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  // ********** 중간 생략 ********** //
-  if ([Plengi initializeWithClientID:@"로플랫에서 발급받은 클라이언트 아이디"
-                clientSecret:@"로플랫에서 발급받은 클라이언트 키"
-                          ] == Result.SUCCESS) {
-        // init 성공
-	    //필요 시 호출
-	    [Plengi setEchoCodeWithEchoCode: @“고객사 별 사용자를 식별할 수 있는 코드 (개인정보 주의바람)“];
-  } else {
-        // init 실패
-  }
-  // ********** 중간 생략 ********** //
-}
-```
 
 ```swift tab="SWIFT" linenums="1"
 func application(_ application: UIApplication,
@@ -328,97 +300,7 @@ func application(_ application: UIApplication,
 }
 ```
 
-3. PlaceDelegate 등록하기
-   서버로부터 장소 인식 이벤트를 받았을 때, loplat X 광고 수신 등이 되었을 때의 이벤트를 수신하기 위해 `PlaceDelegate` 를 등록해줍니다.
-
-`Plengi.init` 이 호출된 후, `setDelegate` 를 호출합니다.
-
-```objectivec tab="OBJECTIVE-C" linenums="1"
-if ([Plengi setDelegate:self] == ResultSUCCESS) {
-        // setDelegate 등록 성공
-} else {
-        // setDelegate 등록 실패
-}
-```
-
-```swift tab="SWIFT" linenums="1"
-if Plengi.setDelegate(self) == .SUCCESS {
-    // setDelegate 등록 성공
-} else {
-        // setDelegate 등록 실패
-}
-```
-
-이후, `PlaceDelegate` 를 구현해줍니다.
-
-```objectivec tab="OBJECTIVE-C" linenums="1"
-@implementation AppDelegate
-
-(void)responsePlaceEvent:(PlengiResponse *)plengiResponse {
-    if ([plengiResponse echoCode] != nil) {
-            // 고객사에서 넣은 echoCode
-    }
-
-    if ([plengiResponse result] == ResultSUCCESS) {
-		// Lite 요금제를 사용할 경우 실시간 위치기반 메시지 발송 기능 제공에 따라 Advertisement 정보만 제공됩니다.
-		if ([plengiResponse advertisement] != nil) {
-            // loplat X 광고 정보가 있을 때
-            // 기본으로 Plengi SDK에서 광고이벤트를 직접 알림으로 처리합니다.
-            // 하지만 설정값에 따라 광고이벤트를 직접 처리할 경우 해당 객체를 사용합니다.
-        }
-
-		// Basic / Premium 요금제를 사용할 경우 Lite 요금제 기능에 더하여 위치인식 결과 데이터를 확인할 수 있습니다.
-        if ([plengiResponse place] != nil) {
-            if ([plengiResponse placeEvent] == PlaceEventENTER) {
-                // 사용자가 장소에 들어왔을 때
-            } else if ([plengiResponse placeEvent] == PlaceEventNEARBY) {
-                // NEARBY로 인식되었을 때
-            }
-        }
-    } else {
-        /* 여기서부터는 오류인 경우입니다 */
-        // [plengiResponse errorReason] 에 위치 인식 실패 / 오류 이유가 포함됨
-
-        // FAIL : 위치 인식 실패
-        // NETWORK_FAIL : 네트워크 오류
-        // ERROR_CLOUD_ACCESS : 클라이언트 ID/PW가 틀렸거나 인증되지 않은 사용자가 요청했을 때
-    }
-}
-```
-
-```swift tab="SWIFT" linenums="1"
-func responsePlaceEvent(_ plengiResponse: PlengiResponse) {
-    if plengiResponse.echoCode != nil {
-        // 고객사에서 설정한 echoCode
-    }
-
-    if plengiResponse.result == .SUCCESS {
-        if plengiResponse.place != nil {
-        	if plengiResponse.placeEvent == .ENTER {
-                // PlaceEvent가 ENTER 일 경우, 들어온 장소 정보 객체가 넘어옴
-            } else if plengiResponse.placeEvent == .NEARBY {
-                // PlaceEvent가 NEARBY 일 경우, NEARBY 로 인식된 장소 정보가 넘어옴
-            }
-        }
-
-        if plengiResponse.advertisement != nil {
-        	// loplat X 광고 정보가 있을 때
-		    // 기본으로 Plengi SDK에서 광고이벤트를 직접 알림으로 처리합니다.
-		    // 하지만 설정값에 따라 광고이벤트를 직접 처리할 경우 해당 객체를 사용합니다.
-        }
-  } else {
-    /* 여기서부터는 오류인 경우입니다 */
-    // plengiResponse.errorReason 에 위치 인식 실패 / 오류 이유가 포함됨
-
-    // FAIL : 위치 인식 실패
-    // NETWORK_FAIL : 네트워크 오류
-    // ERROR_CLOUD_ACCESS : 클라이언트 ID/PW가 틀렸거나 인증되지 않은 사용자가 요청했을 때
-    // Location Acquisition Fail : plengiResponse.location에서 위경도 값만 있는 경우
-  }
-}
-```
-
-4. Start / Stop Plengi
+3. Start / Stop Plengi
 
 사용자 장소/매장 방문 모니터링을 시작하거나 정지 할 수 있습니다. start는 사용자의 위치약관동의 직후 호출해주세요.
 
@@ -434,7 +316,6 @@ func responsePlaceEvent(_ plengiResponse: PlengiResponse) {
 
 start/stop을 **중복 호출** 하더라도 SDK 내에서 **1회만** 호출되도록 구현되어 있습니다.
 
-사용자의 위치 정보는 `PlaceDelegate`로 전달됩니다.
 모니터링 시작과 정지는 다음과 같이 선언합니다.
 
 ```dart
@@ -456,7 +337,7 @@ await LoplatPlengiPlugin.stop();
 ```
 
 #### **캠페인 알림 수신 설정**
-loplat X를 통해 알림(FCM 아님)을 받기 위해서는 마케팅 알림 설정하기 전, plengi start 전에 아래와 같은 코드 작성이 필요 합니다.
+loplat X를 통해 알림을 받기 위해서는 마케팅 알림 설정하기 전, plengi start 전에 아래와 같은 코드 작성이 필요 합니다.
 
 - 마케팅 알림 설정이 ON 인 경우
 ```dart
@@ -479,7 +360,7 @@ await LoplatPlengiPlugin.enableAdNetwork(false);
 
 `AppDelegate` 클래스에 `application_handleActionWithIdentifier` 이벤트를 추가하고, 아래의 코드를 추가해주세요.
 
-```objectivec tab="OBJECTIVE-C" linenums="1"
+```
 if (@available(iOS 10.0, *)) {
   UNUserNotificationCenter.currentNotificationCenter.delegate = self;
 }
@@ -519,6 +400,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 }
 ```
 
+---
 ```swift tab="SWIFT" linenums="1"
 if #available(iOS  10.0, *) {
   UNUserNotificationCenter.current().delegate = self
@@ -556,3 +438,34 @@ func userNotificationCenter(_ center: UNUserNotificationCenter,
   // (가이드에는 뱃지, 소리, 경고 를 사용하지만, 개발에 따라 빼도 상관 없습니다.)
 }
 ```
+---
+### Flutter SDK (Firebase sdk를 사용하는 경우)
+
+Flutter에 firebase관련 설정을 하는 방법은 [Firebase 문서](https://firebase.google.com/docs/flutter/setup?hl=ko)에 설명되어 있습니다.
+
+```
+$ firebase login
+$ dart pub global activate flutterfire_cli
+$ flutterfire configure v
+$ flutter pub add firebase_core
+$ flutter pub add firebase_messaging
+```
+
+
+initializeApp 이후의 시점에서 FCM 토큰 가져옵니다.
+```
+    //firebase initialize
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    
+    //token 값 전달
+    FirebaseMessaging.instance.onTokenRefresh
+        .listen((fcmToken) {
+      LoplatPlengiPlugin.setFCMToken(fcmToken);
+    })
+        .onError((err) {
+    });
+```
+
+이후의 Notification 동작 설정과 Native의 설정은 동일합니다.Android / iOS 가이드에 맞게 설정해주시면 됩니다. 
