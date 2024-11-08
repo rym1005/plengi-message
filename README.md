@@ -300,42 +300,6 @@ func application(_ application: UIApplication,
 }
 ```
 
-3. Start / Stop Plengi
-
-사용자 장소/매장 방문 모니터링을 시작하거나 정지 할 수 있습니다. start는 사용자의 위치약관동의 직후 호출해주세요.
-
-<br>
-
-**!WARNING 앱 시작 혹은 로그인 할 때  마다 사용자의 위치약관동의 여부를 매번 확인해서 start를 호출해줘야만 합니다.**
-
-<br>
-
-**!TIP SDK에는 Start / Stop 이 중복으로 호출될 수 없도록 처리되어 있습니다.**
-
-<br>
-
-start/stop을 **중복 호출** 하더라도 SDK 내에서 **1회만** 호출되도록 구현되어 있습니다.
-
-모니터링 시작과 정지는 다음과 같이 선언합니다.
-
-```dart
-import 'package:loplat_plengi/loplat_plengi.dart';
-
-await LoplatPlengiPlugin.start("[client_id]", "[client_secret]");
-
-```
-<br>
-
-**!DANGER 예외적인 케이스에 대해서는 Stop을 호출하면 안됩니다.**
-
-<br>
-
-예외적인 케이스에 대해서 stop을 호출하지 마세요. stop은 사용자의 위치약관동의에 대한 거부시에만 호출해주세요.
-
-```dart
-await LoplatPlengiPlugin.stop();
-```
-
 #### **캠페인 알림 수신 설정**
 loplat X를 통해 알림을 받기 위해서는 마케팅 알림 설정하기 전, plengi start 전에 아래와 같은 코드 작성이 필요 합니다.
 
@@ -446,7 +410,7 @@ Flutter에 firebase관련 설정을 하는 방법은 [Firebase 문서](https://f
 ```
 $ firebase login
 $ dart pub global activate flutterfire_cli
-$ flutterfire configure v
+$ flutterfire configure
 $ flutter pub add firebase_core
 $ flutter pub add firebase_messaging
 ```
@@ -468,4 +432,12 @@ initializeApp 이후의 시점에서 FCM 토큰 가져옵니다.
     });
 ```
 
-이후의 Notification 동작 설정과 Native의 설정은 동일합니다.Android / iOS 가이드에 맞게 설정해주시면 됩니다. 
+이후의 Notification 동작 설정과 Native의 설정은 동일합니다.Android / iOS 가이드에 맞게 설정해주시면 됩니다.
+
+---
+설정중 notification service가 아래와 같이 파란색 디렉토리로 보이는 경우
+
+![XCode 설정](https://i.ibb.co/VxMPtBs/notgroup.png)
+ 
+아래와 같으 Group 설정을 해주시면 정상적으로 동작합니다.
+![XCode 설정](https://i.ibb.co/1R63C8n/2024-11-04-3-31-32.png)
